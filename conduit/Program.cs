@@ -42,13 +42,13 @@ namespace VoliBot
                 Console.Write("=");
             }
 
-           /* Console.WriteLine("Please enter your username:");
+            Console.WriteLine("Please enter your username:");
             string username = Console.ReadLine();
             Console.WriteLine("Please enter your password:");
             string password = Console.ReadLine();
-            */
+            
 
-            new SummonerInstance("infection0", "uni1code2", lcuPath);
+            new SummonerInstance(username, password, lcuPath);
             //new SummonerInstance("user2", "", lcuPath);
 
         }
