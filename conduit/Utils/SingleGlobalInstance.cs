@@ -5,7 +5,7 @@ using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Threading;
 
-namespace MimicConduit
+namespace VoliBot
 {
     class SingleGlobalInstance : IDisposable
     {

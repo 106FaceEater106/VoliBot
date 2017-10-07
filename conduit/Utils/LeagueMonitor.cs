@@ -8,11 +8,11 @@ using System.Windows.Forms;
 using System.ComponentModel;
 using System.Linq;
 
-namespace MimicConduit
+namespace VoliBot
 {
     class LeagueMonitor
     {
-        private static string dataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Mimic");
+        private static string dataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VoliBot");
         private FileSystemWatcher watcher = new FileSystemWatcher();
 
         static LeagueMonitor()

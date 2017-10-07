@@ -2,7 +2,7 @@
 using System.Management;
 using System.Text;
 
-namespace MimicConduit
+namespace VoliBot
 {
     public static class ProcessExtensions
     {

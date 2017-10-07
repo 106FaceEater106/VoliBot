@@ -4,10 +4,11 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Net;
 using System.Net.Sockets;
+using System.Security;
 using System.Windows.Forms;
 using WebSocketSharp.Server;
 
-namespace MimicConduit
+namespace VoliBot
 {
     class Program : ApplicationContext
     {
@@ -16,14 +17,11 @@ namespace MimicConduit
 
         private static string Header1 = APP_NAME + " | " + VERSION;
         private static string Header2 = "based on molenzwiebel's Mimic Conduit";
-
-        private WebSocketServer server;
+        
         private List<LeagueSocketBehavior> behaviors = new List<LeagueSocketBehavior>();
-        private NotifyIcon trayIcon;
         private bool connected = false;
-        private LeagueMonitor leagueMonitor;
+        private List<LeagueMonitor> leagueMonitoring = new List<LeagueMonitor>();
         private RegistryKey bootKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
-        private MenuItem startOnBootMenuItem;
 
         private Program(string lcuPath)
         {
@@ -43,21 +41,41 @@ namespace MimicConduit
             {
                 Console.Write("=");
             }
-            // Start the websocket server. It will not actually do anything until we add a behavior.
-            server = new WebSocketServer(8182);
-                
-            try
+
+            Console.WriteLine("Please enter your username:");
+            string username = Console.ReadLine();
+            Console.WriteLine("Please enter your password:");
+            string password = Console.ReadLine();
+
+            new SummonerInstance(username, password, lcuPath);
+
+        }
+
+        public SecureString GetPassword()
+        {
+            var pwd = new SecureString();
+            while (true)
             {
-                server.Start();
+                ConsoleKeyInfo i = Console.ReadKey(true);
+                if (i.Key == ConsoleKey.Enter)
+                {
+                    break;
+                }
+                else if (i.Key == ConsoleKey.Backspace)
+                {
+                    if (pwd.Length > 0)
+                    {
+                        pwd.RemoveAt(pwd.Length - 1);
+                        Console.Write("\b \b");
+                    }
+                }
+                else
+                {
+                    pwd.AppendChar(i.KeyChar);
+                    Console.Write("*");
+                }
             }
-            catch (System.Net.Sockets.SocketException e)
-            {
-                Console.WriteLine($"Error code {e.ErrorCode.ToString()}: '{e.Message}'", "Unable to start server");
-                return;
-            }
-            
-            // Start monitoring league.
-            leagueMonitor = new LeagueMonitor(lcuPath, onLeagueStart, onLeagueStop);
+            return pwd;
         }
 
         private string FindLocalIP()
@@ -67,48 +85,6 @@ namespace MimicConduit
                 socket.Connect("8.8.8.8", 65530);
                 IPEndPoint endPoint = socket.LocalEndPoint as IPEndPoint;
                 return endPoint.Address.ToString();
-            }
-        }
-
-        private void onLeagueStart(string lockfileContents)
-        {
-            Console.WriteLine("League Started.");
-            Console.WriteLine("Connected to League. Visit http://mimic.molenzwiebel.xyz to control your client remotely.");
-            connected = true;
-
-            var parts = lockfileContents.Split(':');
-            var port = int.Parse(parts[2]);
-            server.AddWebSocketService("/league", () =>
-            {
-                var behavior = new LeagueSocketBehavior(port, parts[3]);
-                behaviors.Add(behavior);
-                return behavior;
-            });
-
-            MakeDiscoveryRequest("PUT", "{ \"internal\": \"" + FindLocalIP() + "\" }");
-        }
-
-        private void onLeagueStop()
-        {
-            Console.WriteLine("League Stopped.");
-            Console.WriteLine("Disconnected from League.");
-            connected = false;
-
-            // This will cleanup the pending connections too.
-            behaviors.ForEach(x => x.Destroy());
-            behaviors.Clear();
-            server.RemoveWebSocketService("/league");
-
-            MakeDiscoveryRequest("DELETE", "{}");
-        }
-
-        /// Makes an http request to the discovery server to announce or denounce our IP pairs.
-        static void MakeDiscoveryRequest(string method, string body)
-        {
-            using (var client = new WebClient())
-            {
-                client.Headers[HttpRequestHeader.ContentType] = "application/json";
-                try { client.UploadString("http://discovery.mimic.molenzwiebel.xyz/discovery", method, body); } catch { }
             }
         }
 

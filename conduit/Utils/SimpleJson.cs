@@ -66,12 +66,12 @@ using System.Globalization;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
-using MimicConduit.Reflection;
+using VoliBot.Reflection;
 
 // ReSharper disable LoopCanBeConvertedToQuery
 // ReSharper disable RedundantExplicitArrayCreation
 // ReSharper disable SuggestUseVarKeywordEvident
-namespace MimicConduit
+namespace VoliBot
 {
     /// <summary>
     /// Represents the json array.
@@ -484,7 +484,7 @@ namespace MimicConduit
     }
 }
 
-namespace MimicConduit
+namespace VoliBot
 {
     /// <summary>
     /// This class encodes and decodes JSON strings.
