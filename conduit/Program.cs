@@ -42,40 +42,15 @@ namespace VoliBot
                 Console.Write("=");
             }
 
-            Console.WriteLine("Please enter your username:");
+           /* Console.WriteLine("Please enter your username:");
             string username = Console.ReadLine();
             Console.WriteLine("Please enter your password:");
             string password = Console.ReadLine();
+            */
 
-            new SummonerInstance(username, password, lcuPath);
+            new SummonerInstance("user1", "", lcuPath);
+            new SummonerInstance("user2", "", lcuPath);
 
-        }
-
-        public SecureString GetPassword()
-        {
-            var pwd = new SecureString();
-            while (true)
-            {
-                ConsoleKeyInfo i = Console.ReadKey(true);
-                if (i.Key == ConsoleKey.Enter)
-                {
-                    break;
-                }
-                else if (i.Key == ConsoleKey.Backspace)
-                {
-                    if (pwd.Length > 0)
-                    {
-                        pwd.RemoveAt(pwd.Length - 1);
-                        Console.Write("\b \b");
-                    }
-                }
-                else
-                {
-                    pwd.AppendChar(i.KeyChar);
-                    Console.Write("*");
-                }
-            }
-            return pwd;
         }
 
         private string FindLocalIP()

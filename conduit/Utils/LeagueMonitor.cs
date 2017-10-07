@@ -7,13 +7,18 @@ using System.Text;
 using System.Windows.Forms;
 using System.ComponentModel;
 using System.Linq;
+using System.Net;
+using System.Collections.Generic;
+using System.Net.NetworkInformation;
 
 namespace VoliBot
 {
     class LeagueMonitor
     {
         private static string dataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VoliBot");
-        private FileSystemWatcher watcher = new FileSystemWatcher();
+        public Process lcuProcess { get; private set; }
+        public int lcuPort { get; private set; }
+        public string lcuPassword = "RWr6Cf-tOJkKA768wjRl6A";
 
         static LeagueMonitor()
         {
@@ -24,61 +29,26 @@ namespace VoliBot
          * Utility method that calls the specified argument functions whenever League starts or stops.
          * This is done by observing the lockfile, and the start function gets the contents of the lockfile as a param.
          */
-        public LeagueMonitor(string lcuExecutablePath, Action<string> onStart, Action onStop)
+        public LeagueMonitor(string lcuExecutablePath, Action<int, string> onStart, Action onStop)
         {
             var leagueDir = Path.GetDirectoryName(lcuExecutablePath) + "\\";
-
-            watcher.Path = leagueDir;
-            watcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName | NotifyFilters.LastAccess;
-            watcher.Filter = "lockfile";
-
-            var active = false;
-
-            // We use the same handler for both lockfile creation and lockfile edits.
-            // Sometimes we are so fast that the file is still empty when we attempt to read it.
-            // This way, it will be caught in the edit event instead.
-            FileSystemEventHandler createdEditHandler = (o, e) =>
+            lcuPort = GetAvailablePort(50000);
+            ProcessStartInfo psi = new ProcessStartInfo();
+            psi.FileName = GetLCUPath();
+            psi.Arguments = "--headless --app-port=" + lcuPort + " --remoting-auth-token=" + lcuPassword + " --allow-multiple-clients";
+            lcuProcess = Process.Start(psi);
+            lcuProcess.WaitForExit();
+            onStart(lcuPort, lcuPassword);
+            lcuProcess.Exited += (o, e) =>
             {
-                if (active) return;
-
-                var contents = ReadLockfile(leagueDir);
-                if (!contents.Equals(""))
-                {
-                    onStart(contents);
-                    active = true;
-                }
-            };
-
-            watcher.Created += createdEditHandler;
-            watcher.Changed += createdEditHandler;
-
-            watcher.Deleted += (o, e) =>
-            {
-                // Lockfile was deleted, notify.
                 onStop();
-                active = false;
             };
 
-            watcher.EnableRaisingEvents = true;
-
-            // Check if we launched while league was already active.
-            if (File.Exists(leagueDir + "\\lockfile"))
+            // Kill the Client, when closing bot.
+            Application.ApplicationExit += (o, e) =>
             {
-                active = true;
-                onStart(ReadLockfile(leagueDir));
-            }
-        }
-
-        /**
-         * Reads the lockfile at the specified location. The lockfile needs to be copied first, since it is locked (heh).
-         */
-        private static string ReadLockfile(string leagueLocation)
-        {
-            // The lockfile is locked (heh), so we copy it first.
-            File.Copy(leagueLocation + "lockfile", leagueLocation + "lockfile-temp");
-            var contents = File.ReadAllText(leagueLocation + "lockfile-temp", Encoding.UTF8);
-            File.Delete(leagueLocation + "lockfile-temp");
-            return contents;
+                lcuProcess.Kill();
+            };
         }
 
         /**
@@ -147,6 +117,44 @@ namespace VoliBot
             }
 
             return path;
+        }
+
+        /// <summary>
+        /// checks for used ports and retrieves the first free port
+        /// </summary>
+        /// <returns>the free port or 0 if it did not find a free port</returns>
+        public static int GetAvailablePort(int startingPort)
+        {
+            IPEndPoint[] endPoints;
+            List<int> portArray = new List<int>();
+
+            IPGlobalProperties properties = IPGlobalProperties.GetIPGlobalProperties();
+
+            //getting active connections
+            TcpConnectionInformation[] connections = properties.GetActiveTcpConnections();
+            portArray.AddRange(from n in connections
+                               where n.LocalEndPoint.Port >= startingPort
+                               select n.LocalEndPoint.Port);
+
+            //getting active tcp listners - WCF service listening in tcp
+            endPoints = properties.GetActiveTcpListeners();
+            portArray.AddRange(from n in endPoints
+                               where n.Port >= startingPort
+                               select n.Port);
+
+            //getting active udp listeners
+            endPoints = properties.GetActiveUdpListeners();
+            portArray.AddRange(from n in endPoints
+                               where n.Port >= startingPort
+                               select n.Port);
+
+            portArray.Sort();
+
+            for (int i = startingPort; i < UInt16.MaxValue; i++)
+                if (!portArray.Contains(i))
+                    return i;
+
+            return 0;
         }
 
         /*

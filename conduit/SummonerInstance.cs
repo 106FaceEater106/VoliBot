@@ -10,36 +10,42 @@ namespace VoliBot
     {
         public string Username { get; private set; }
         public string Password { get; private set; }
+
         private bool connected = false;
-        private List<LeagueMonitor> leagueMonitoring = new List<LeagueMonitor>();
+        private LeagueMonitor leagueMonitor;
 
         public SummonerInstance(string username, string password, string lcuPath)
         {
-            Console.WriteLine("Hello " + username);
             Username = username;
             Password = password;
 
             // Start monitoring league.
-            LeagueMonitor leagueMonitor = new LeagueMonitor(lcuPath, onLeagueStart, onLeagueStop);
-            leagueMonitoring.Add(leagueMonitor);
+            leagueMonitor = new LeagueMonitor(lcuPath, onLeagueStart, onLeagueStop);
         }
 
-        private void onLeagueStart(string lockfileContents)
+        private void onLeagueStart(int port, string password)
         {
-            Console.WriteLine("League Started.");
-            Console.WriteLine("Connected to League. Visit http://mimic.molenzwiebel.xyz to control your client remotely.");
+            updateStatus("League Started.");
+            updateStatus("Connected to League.");
             connected = true;
-
-            var parts = lockfileContents.Split(':');
-            var port = int.Parse(parts[2]);
-            var behavior = new LeagueSocketBehavior(port, parts[3]);
+            new LeagueSocketBehavior(port, password, this);
         }
 
         private void onLeagueStop()
         {
-            Console.WriteLine("League Stopped.");
-            Console.WriteLine("Disconnected from League.");
+            updateStatus("League Stopped.");
+            updateStatus("Disconnected from League.");
             connected = false;
+        }
+        
+        public void updateStatus(string status)
+        {
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write("[" + DateTime.Now + "] ");
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write("[" + Username + "] ");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write(status + "\n");
         }
     }
 }

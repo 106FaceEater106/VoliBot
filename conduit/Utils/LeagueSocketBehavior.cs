@@ -19,14 +19,16 @@ namespace VoliBot
 
         private int lcuPort;
         private string lcuPassword;
+        private SummonerInstance Instance;
 
-        public LeagueSocketBehavior(int port, string password)
+        public LeagueSocketBehavior(int port, string password, SummonerInstance instance)
         {
             lcuPort = port;
             lcuPassword = password;
+            Instance = instance;
 
-            socket = new WebSocket("wss://127.0.0.1:" + port + "/", "wamp");
-            socket.SetCredentials("riot", password, true);
+            socket = new WebSocket("wss://127.0.0.1:" + lcuPort + "/", "wamp");
+            socket.SetCredentials("riot", lcuPassword, true);
             socket.SslConfiguration.EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls12;
             socket.SslConfiguration.ServerCertificateValidationCallback = (a, b, c, d) => true;
             socket.OnMessage += handleWebSocketMessage;
@@ -63,7 +65,7 @@ namespace VoliBot
 
             var status = eventType.Equals("Create") || eventType.Equals("Update") ? 200 : 404;
             var message = "[1, \"" + uri + "\", " + status + ", " + SimpleJson.SerializeObject(data) + "]";
-            Console.WriteLine(uri);
+            Instance.updateStatus(uri);
         }
 
         private void VoliBotHook(string uri, JsonObject data)
@@ -122,7 +124,7 @@ namespace VoliBot
         /// Makes an http request to the specified path with an optional method and body.
         Tuple<int, object> makeRequest(string path, string method = "GET", string body = null)
         {
-            Console.WriteLine(body);
+            Instance.updateStatus(body);
             using (var client = new TcpClient("127.0.0.1", lcuPort))
             using (var stream = new SslStream(client.GetStream(), true, (a, b, c, d) => true))
             {
