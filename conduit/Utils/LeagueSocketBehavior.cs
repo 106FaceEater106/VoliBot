@@ -59,8 +59,6 @@ namespace VoliBot
 
 
             var uri = (string)ev["uri"];
-            Instance.updateStatus(uri);
-            //if (!observedPaths.Values.Any(x => x.IsMatch(uri))) return;
             var data = (JsonObject)ev["data"];
             var eventType = (string)ev["eventType"];
 
@@ -115,7 +113,6 @@ namespace VoliBot
         /// Makes an http request to the specified path with an optional method and body.
         public Tuple<int, object> makeRequest(string path, string method = "GET", string body = null)
         {
-            Instance.updateStatus(body);
             using (var client = new TcpClient("127.0.0.1", lcuPort))
             using (var stream = new SslStream(client.GetStream(), true, (a, b, c, d) => true))
             {

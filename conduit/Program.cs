@@ -49,8 +49,6 @@ namespace VoliBot
             
 
             new SummonerInstance(username, password, lcuPath);
-            //new SummonerInstance("user2", "", lcuPath);
-
         }
 
         private string FindLocalIP()
