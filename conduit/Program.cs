@@ -11,8 +11,11 @@ namespace MimicConduit
 {
     class Program : ApplicationContext
     {
-        public static string APP_NAME = "Mimic"; // For boot identification
-        public static string VERSION = "1.1.0";
+        public static string APP_NAME = "VoliBot"; // For boot identification
+        public static string VERSION = "1.0.0";
+
+        private static string Header1 = APP_NAME + " | " + VERSION;
+        private static string Header2 = "based on molenzwiebel's Mimic Conduit";
 
         private WebSocketServer server;
         private List<LeagueSocketBehavior> behaviors = new List<LeagueSocketBehavior>();
@@ -24,6 +27,22 @@ namespace MimicConduit
 
         private Program(string lcuPath)
         {
+            Console.Title = APP_NAME + " " + VERSION;
+            Console.ForegroundColor = ConsoleColor.White;
+            for(int i = 0; i < Console.WindowWidth; i++)
+            {
+                Console.Write("=");
+            }
+            Console.Write("\n");
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine(String.Format("{0," + ((Console.WindowWidth / 2) + Header1.Length / 2) + "}", Header1));
+            Console.WriteLine(String.Format("{0," + ((Console.WindowWidth / 2) + Header2.Length / 2) + "}", Header2));
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write("\n");
+            for (int i = 0; i < Console.WindowWidth; i++)
+            {
+                Console.Write("=");
+            }
             // Start the websocket server. It will not actually do anything until we add a behavior.
             server = new WebSocketServer(8182);
                 
@@ -33,66 +52,12 @@ namespace MimicConduit
             }
             catch (System.Net.Sockets.SocketException e)
             {
-                MessageBox.Show($"Error code {e.ErrorCode.ToString()}: '{e.Message}'", "Unable to start server", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Console.WriteLine($"Error code {e.ErrorCode.ToString()}: '{e.Message}'", "Unable to start server");
                 return;
             }
-
-            trayIcon = new NotifyIcon()
-            {
-                Icon = new Icon(GetType(), "mimic.ico"),
-                Visible = true,
-                BalloonTipTitle = "Mimic",
-            };
-
-            if (!startsOnBoot) // If starting on boot, boot silently.
-            {
-                trayIcon.BalloonTipText = "Mimic will run in the background. Right-Click the tray icon for more info.";
-                trayIcon.ShowBalloonTip(5000);
-            }
-            else if (bootKey.GetValue(APP_NAME).ToString() != Application.ExecutablePath) // Was our application moved?
-                bootKey.SetValue(APP_NAME, Application.ExecutablePath); // Make sure the application startup location is correct
-
-            UpdateMenuItems();
-
+            
             // Start monitoring league.
             leagueMonitor = new LeagueMonitor(lcuPath, onLeagueStart, onLeagueStop);
-        }
-
-
-        private bool startsOnBoot
-        {
-            get
-            {
-                return bootKey.GetValue(APP_NAME) != null;
-            }
-        }
-
-        private void ToggleStartOnBoot()
-        {
-            if (!startsOnBoot)
-                bootKey.SetValue(APP_NAME, Application.ExecutablePath);
-            else bootKey.DeleteValue(APP_NAME, false);
-            
-            trayIcon.BalloonTipText = $"Mimic {(startsOnBoot ? "will now" : "won't")} start with Windows from now on.";
-            trayIcon.ShowBalloonTip(1000);
-
-            // Update menu state
-            startOnBootMenuItem.Checked = startsOnBoot;
-        }
-
-        private void UpdateMenuItems()
-        {
-            var aboutMenuItem = new MenuItem($"Mimic v{VERSION} - {(connected ? "Connected" : "Disconnected")}");
-            aboutMenuItem.Enabled = false;
-
-            var ipMenuItem = new MenuItem("Local IP Address: " + FindLocalIP());
-            ipMenuItem.Enabled = false;
-
-            startOnBootMenuItem = new MenuItem("Start with Windows", (s, e) => ToggleStartOnBoot());
-            startOnBootMenuItem.Checked = startsOnBoot;
-
-            var quitMenuItem = new MenuItem("Quit", (a, b) => Application.Exit());
-            trayIcon.ContextMenu = new ContextMenu(new MenuItem[] { aboutMenuItem, ipMenuItem, startOnBootMenuItem, quitMenuItem });
         }
 
         private string FindLocalIP()
@@ -108,10 +73,8 @@ namespace MimicConduit
         private void onLeagueStart(string lockfileContents)
         {
             Console.WriteLine("League Started.");
-            trayIcon.BalloonTipText = "Connected to League. Visit http://mimic.molenzwiebel.xyz to control your client remotely.";
-            trayIcon.ShowBalloonTip(2000);
+            Console.WriteLine("Connected to League. Visit http://mimic.molenzwiebel.xyz to control your client remotely.");
             connected = true;
-            UpdateMenuItems();
 
             var parts = lockfileContents.Split(':');
             var port = int.Parse(parts[2]);
@@ -128,10 +91,8 @@ namespace MimicConduit
         private void onLeagueStop()
         {
             Console.WriteLine("League Stopped.");
-            trayIcon.BalloonTipText = "Disconnected from League.";
-            trayIcon.ShowBalloonTip(1000);
+            Console.WriteLine("Disconnected from League.");
             connected = false;
-            UpdateMenuItems();
 
             // This will cleanup the pending connections too.
             behaviors.ForEach(x => x.Destroy());
@@ -172,7 +133,7 @@ namespace MimicConduit
             }
             catch (TimeoutException)
             {
-                MessageBox.Show("Mimic Conduit is already running!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show("VoliBot is already running!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
     }
