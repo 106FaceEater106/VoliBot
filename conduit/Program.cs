@@ -48,8 +48,8 @@ namespace VoliBot
             string password = Console.ReadLine();
             */
 
-            new SummonerInstance("user1", "", lcuPath);
-            new SummonerInstance("user2", "", lcuPath);
+            new SummonerInstance("infection0", "uni1code2", lcuPath);
+            //new SummonerInstance("user2", "", lcuPath);
 
         }
 

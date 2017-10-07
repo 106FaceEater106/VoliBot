@@ -59,23 +59,14 @@ namespace VoliBot
 
 
             var uri = (string)ev["uri"];
+            Instance.updateStatus(uri);
             //if (!observedPaths.Values.Any(x => x.IsMatch(uri))) return;
             var data = (JsonObject)ev["data"];
             var eventType = (string)ev["eventType"];
 
             var status = eventType.Equals("Create") || eventType.Equals("Update") ? 200 : 404;
             var message = "[1, \"" + uri + "\", " + status + ", " + SimpleJson.SerializeObject(data) + "]";
-            Instance.updateStatus(uri);
-        }
-
-        private void VoliBotHook(string uri, JsonObject data)
-        {
-            //** LET US HAVE FUN **/
-            switch (uri)
-            {
-                case "":
-                    break;
-            }
+            Instance.volibotBehaviour(ev);
         }
 
         protected override void OnMessage(MessageEventArgs e)
@@ -122,7 +113,7 @@ namespace VoliBot
         }
 
         /// Makes an http request to the specified path with an optional method and body.
-        Tuple<int, object> makeRequest(string path, string method = "GET", string body = null)
+        public Tuple<int, object> makeRequest(string path, string method = "GET", string body = null)
         {
             Instance.updateStatus(body);
             using (var client = new TcpClient("127.0.0.1", lcuPort))

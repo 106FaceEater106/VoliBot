@@ -13,6 +13,7 @@ namespace VoliBot
 
         private bool connected = false;
         private LeagueMonitor leagueMonitor;
+        private LeagueSocketBehavior leagueSocket;
 
         public SummonerInstance(string username, string password, string lcuPath)
         {
@@ -23,12 +24,31 @@ namespace VoliBot
             leagueMonitor = new LeagueMonitor(lcuPath, onLeagueStart, onLeagueStop);
         }
 
+        public void volibotBehaviour(JsonObject payload)
+        {
+            var uri = (string)payload["uri"];
+            var data = (JsonObject)payload["data"];
+            var eventType = (string)payload["eventType"];
+
+            var status = eventType.Equals("Create") || eventType.Equals("Update") ? 200 : 404;
+            var message = "[1, \"" + uri + "\", " + status + ", " + SimpleJson.SerializeObject(data) + "]";
+
+            switch (uri)
+            {
+                // Login, when headless client is initialized.
+                case "/riotclient/system-info/v1/basic-info":
+                    leagueSocket.makeRequest("/lol-login/v1/session", "POST", "{\"password\": \"" + Password + "\", \"username\": \"" + Username + "\"}");
+                    break;
+            }
+
+        }
+
         private void onLeagueStart(int port, string password)
         {
             updateStatus("League Started.");
             updateStatus("Connected to League.");
             connected = true;
-            new LeagueSocketBehavior(port, password, this);
+            leagueSocket = new LeagueSocketBehavior(port, password, this);
         }
 
         private void onLeagueStop()
