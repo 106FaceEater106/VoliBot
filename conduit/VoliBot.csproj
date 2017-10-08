@@ -65,6 +65,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="RiotAPI\lol-login\v1\Session.cs" />
     <Compile Include="Utils\LeagueSocketBehavior.cs" />
     <Compile Include="Utils\ProcessExtensions.cs" />
     <Compile Include="Utils\SimpleJson.cs" />

@@ -19,7 +19,6 @@ namespace VoliBot
         private static string Header2 = "based on molenzwiebel's Mimic Conduit";
         
         private List<LeagueSocketBehavior> behaviors = new List<LeagueSocketBehavior>();
-        private bool connected = false;
         private List<LeagueMonitor> leagueMonitoring = new List<LeagueMonitor>();
         private RegistryKey bootKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
 
@@ -49,16 +48,6 @@ namespace VoliBot
             
 
             new SummonerInstance(username, password, lcuPath);
-        }
-
-        private string FindLocalIP()
-        {
-            using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, 0))
-            {
-                socket.Connect("8.8.8.8", 65530);
-                IPEndPoint endPoint = socket.LocalEndPoint as IPEndPoint;
-                return endPoint.Address.ToString();
-            }
         }
 
         [STAThread]

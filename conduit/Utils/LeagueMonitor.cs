@@ -43,12 +43,6 @@ namespace VoliBot
             {
                 onStop();
             };
-
-            // Kill the Client, when closing bot.
-            Application.ApplicationExit += (o, e) =>
-            {
-                lcuProcess.Kill();
-            };
         }
 
         /**
