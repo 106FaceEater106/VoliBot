@@ -11,4 +11,4 @@ Mimic is composed of three different components: **web**, **conduit** and **rift
 
 ## License
 
-VoliBut is released under the [MIT](https://github.com/Maufeat/VoliBot/blob/master/LICENSE) license. Feel free to browse through the code as you like, and if you end up making any improvements or changes, please do not hesitate to make a pull request.
+VoliBot is released under the [MIT](https://github.com/Maufeat/VoliBot/blob/master/LICENSE) license. Feel free to browse through the code as you like, and if you end up making any improvements or changes, please do not hesitate to make a pull request.
