@@ -1,7 +1,9 @@
 ﻿using Microsoft.Win32;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Security;
@@ -17,9 +19,12 @@ namespace VoliBot
 
         private static string Header1 = APP_NAME + " | " + VERSION;
         private static string Header2 = "based on molenzwiebel's Mimic Conduit";
-        
+
+        private ArrayList accounts = new ArrayList();
+
         private List<LeagueSocketBehavior> behaviors = new List<LeagueSocketBehavior>();
         private List<LeagueMonitor> leagueMonitoring = new List<LeagueMonitor>();
+
         private RegistryKey bootKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
 
         private Program(string lcuPath)
@@ -40,14 +45,26 @@ namespace VoliBot
             {
                 Console.Write("=");
             }
-
-            Console.WriteLine("Please enter your username:");
-            string username = Console.ReadLine();
-            Console.WriteLine("Please enter your password:");
-            string password = Console.ReadLine();
             
+            foreach(string account in loadAccounts())
+            {
+                string[] stringSeparators = new string[] { "|" };
+                var result = account.Split(stringSeparators, StringSplitOptions.None);
+                new SummonerInstance(result[0], result[1], lcuPath);
+            }
+        }
 
-            new SummonerInstance(username, password, lcuPath);
+        public ArrayList loadAccounts()
+        {
+            ArrayList accounts = new ArrayList();
+            TextReader tr = File.OpenText(AppDomain.CurrentDomain.BaseDirectory + "accounts.txt");
+            string line;
+            while ((line = tr.ReadLine()) != null)
+            {
+                accounts.Add(line);
+            }
+            tr.Close();
+            return accounts;
         }
 
         [STAThread]

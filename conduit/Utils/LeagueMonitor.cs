@@ -35,7 +35,7 @@ namespace VoliBot
             lcuPort = GetAvailablePort(50000);
             ProcessStartInfo psi = new ProcessStartInfo();
             psi.FileName = GetLCUPath();
-            psi.Arguments = "--app-port=" + lcuPort + " --remoting-auth-token=" + lcuPassword + "";
+            psi.Arguments = "--headless --app-port=" + lcuPort + " --remoting-auth-token=" + lcuPassword + " --allow-multiple-clients";
             lcuProcess = Process.Start(psi);
             lcuProcess.WaitForExit();
             onStart(lcuPort, lcuPassword);
